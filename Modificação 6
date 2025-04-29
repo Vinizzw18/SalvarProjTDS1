@@ -1,0 +1,849 @@
+using static System.Console;
+using static System.Convert;
+using static System.Environment;
+using System;
+using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
+
+namespace Mynamespace
+{
+    class SistemaEscola
+    {
+
+        public static void MenuInteracao(string[] opcoes)
+        {
+            ForegroundColor = ConsoleColor.White;
+            foreach (string option in opcoes)
+            {
+                WriteLine(option);
+            }
+            ResetColor();
+            Write("Escolha sua opção: ");
+        }
+
+        public static void Main(string[] args)
+        {
+            ForegroundColor = ConsoleColor.Green;
+            WriteLine("========== MENU ESCOLAR ==========");
+            ResetColor();
+
+            string[] opcoes = { "==================================", "1 - Cadastrar turma", "2 - Adicionar Aluno", "3 - Editar Aluno", "4 - Remover Aluno", "5 - Ver Turmas", "6 - Ver Alunos", "7 - Ver Aprovados", "8 - Ver Aluno de Recuperação", "9 - Ver Reprovados", "10 - Pesquisar Aluno", "11 - Ver Dados Salvos", "12 - Salvar", "13 - Sair" };
+            int option = 0;
+
+            while (true)
+            {
+                MenuInteracao(opcoes);
+                try
+                {
+                    option = ToInt32(ReadLine());
+                }
+                catch (System.FormatException)
+                {
+                    ForegroundColor = ConsoleColor.Red;
+                    WriteLine("Por favor, insira uma opção entre 1 e " + opcoes.Length);
+                    ResetColor();
+                }
+                catch (Exception)
+                {
+                    ForegroundColor = ConsoleColor.Red;
+                    WriteLine("Erro! Tente novamente.");
+                    ResetColor();
+                }
+
+                switch (option)
+                {
+                    case 1:
+                        CadastrarTurma();
+                        break;
+                    case 2:
+                        AdicionarAluno();
+                        break;
+                    case 3:
+                        EditarAluno();
+                        break;
+                    case 4:
+                        RemoverAluno();
+                        break;
+                    case 5:
+                        VerTurmas();
+                        break;
+                    case 6:
+                        VerAlunos();
+                        break;
+                    case 7:
+                        VerAprov();
+                        break;
+                    case 8:
+                        VerAlunosRec();
+                        break;
+                    case 9:
+                        VerReprov();
+                        break;
+                    case 10:
+                        PesqAluno();
+                        break;
+                    case 11:
+                        ExibirDadosSalvos();
+                        break;
+                    case 12:
+                        SalvarDados();
+                        break;
+                    case 13:
+                        Exit(0);
+                        break;
+                    default:
+                        ForegroundColor = ConsoleColor.Red;
+                        WriteLine("Por favor, insira uma opção entre 1 e " + (opcoes.Length - 1));
+                        ResetColor();
+                        break;
+                }
+            }
+        }
+        static List<string> TurmasDosAlunos = new List<string>();
+        static List<string> Turmas = new List<string>();
+        static List<string> Alunos = new List<string>();
+        static List<double> nota1 = new List<double>();
+        static List<double> nota2 = new List<double>();
+        static List<double> media = new List<double>();
+
+        private static void CadastrarTurma()
+        {
+            Clear();
+            ForegroundColor = ConsoleColor.Yellow;
+            WriteLine("=======================");
+            WriteLine("=== CADASTRAR TURMA ===");
+            WriteLine("=======================");
+            ResetColor();
+            WriteLine("\nDigite o nome da turma: ");
+            string novaturma = ReadLine().ToUpper();
+            var repetido = Turmas.IndexOf(novaturma);
+            if (repetido >= 0)
+            {
+                ForegroundColor = ConsoleColor.Red;
+                WriteLine("Turma já cadastrada! Tente novamente.");
+                ResetColor();
+                return;
+            }
+            else
+            {
+                Turmas.Add(novaturma);
+                ForegroundColor = ConsoleColor.Green;
+                WriteLine("Turma Cadastrada com Sucesso!");
+                ResetColor();
+            }
+            foreach (var item in Turmas)
+            {
+                WriteLine(item);
+            }
+        }
+        private static void AdicionarAluno()
+        {
+            Clear();
+            ForegroundColor = ConsoleColor.Yellow;
+            WriteLine("=======================");
+            WriteLine("=== ADICIONAR ALUNO ===");
+            WriteLine("=======================");
+            ResetColor();
+            WriteLine("\nDigite o nome do aluno(a): ");
+            string novoaluno1 = ReadLine().ToUpper();
+            var repetido1 = Alunos.Contains(novoaluno1);
+            if (repetido1)
+            {
+                ForegroundColor = ConsoleColor.Red;
+                WriteLine("Aluno já existente! Tente novamente.");
+                ResetColor();
+                return;
+            }
+            else
+            {
+                Alunos.Add(novoaluno1);
+            }
+            WriteLine("Turmas Existentes: ");
+            if (Turmas.Count > 0)
+            {
+                for (int i = 0; i < Turmas.Count; i++)
+                {
+                    WriteLine($"{i + 1} - {Turmas[i]}");
+                }
+
+            }
+            else
+            {
+                ForegroundColor = ConsoleColor.Red;
+                WriteLine("Nenhuma turma foi encontrada no sistema. Adicione uma turma.\n");
+                ResetColor();
+            }
+
+            WriteLine("\nEm qual Turma o aluno(a) será registrado? R: ");
+            string TurmaAlunoReg = ReadLine().ToUpper();
+            var verifTurm = Turmas.IndexOf(TurmaAlunoReg);
+            if (verifTurm >= 0)
+            {
+                ForegroundColor = ConsoleColor.Green;
+                WriteLine($"Sucesso! Aluno adicionado à turma {TurmaAlunoReg}.");
+                ResetColor();
+                TurmasDosAlunos.Add(TurmaAlunoReg);
+            }
+            else
+            {
+                ForegroundColor = ConsoleColor.Red;
+                WriteLine("Erro!");
+                WriteLine($"A turma {TurmaAlunoReg} não possui registros! ");
+                Alunos.RemoveAt(Alunos.Count - 1);
+                ResetColor();
+                WriteLine("Deseja adicionar uma turma? \n1 - Sim \n2 - Não");
+                int escolhaUsuario = ToInt32(ReadLine());
+                if (escolhaUsuario == 1)
+                {
+                    CadastrarTurma();
+                    AdicionarAluno();
+                }
+                else if (escolhaUsuario == 2)
+                {
+                    ForegroundColor = ConsoleColor.Red;
+                    WriteLine("Nenhum aluno e turma adicionado ao sistema!");
+                    ResetColor();
+                }
+                ResetColor();
+                return;
+            }
+
+            double nota1Input = 0;
+            double nota2Input = 0;
+
+            while (true)
+            {
+                WriteLine("Digite a 1° nota do aluno (0 a 100): ");
+                try
+                {
+                    nota1Input = ToDouble(ReadLine());
+                    if (nota1Input < 0 || nota1Input > 100)
+                    {
+                        ForegroundColor = ConsoleColor.Red;
+                        WriteLine("Erro! A nota precisa estar entre 0 e 100. Tente novamente.");
+                        ResetColor();
+                        continue;
+                    }
+                    break;
+                }
+                catch (FormatException)
+                {
+                    ForegroundColor = ConsoleColor.Red;
+                    WriteLine("\nErro. O valor precisa ser um número válido!");
+                    ResetColor();
+                }
+                catch (Exception)
+                {
+                    ForegroundColor = ConsoleColor.Red;
+                    WriteLine("Erro Fatal!");
+                    ResetColor();
+                    return;
+                }
+            }
+
+            while (true)
+            {
+                WriteLine("Digite a 2° nota do aluno (0 a 100): ");
+                try
+                {
+                    nota2Input = ToDouble(ReadLine());
+                    if (nota2Input < 0 || nota2Input > 100)
+                    {
+                        ForegroundColor = ConsoleColor.Red;
+                        WriteLine("Erro! A nota precisa estar entre 0 e 100. Tente novamente.");
+                        ResetColor();
+                        continue;
+                    }
+                    break;
+                }
+                catch (FormatException)
+                {
+                    ForegroundColor = ConsoleColor.Red;
+                    WriteLine("\nErro. O valor precisa ser um número válido!");
+                    ResetColor();
+                }
+                catch (Exception)
+                {
+                    ForegroundColor = ConsoleColor.Red;
+                    WriteLine("Erro Fatal!");
+                    ResetColor();
+                    return;
+                }
+            }
+
+            double mediaCalc = (nota1Input + nota2Input) / 2;
+            media.Add(mediaCalc);
+            nota1.Add(nota1Input);
+            nota2.Add(nota2Input);
+
+            ForegroundColor = ConsoleColor.Cyan;
+            WriteLine($"Média calculada: {mediaCalc:F2}");
+            ResetColor();
+
+            int escolha1 = ConfirmacaoSair();
+            if (escolha1 == 1)
+            {
+                AdicionarAluno();
+            }
+            else
+            {
+                return;
+            }
+
+  
+        }
+        private static void EditarAluno()
+        {
+            Clear();
+            ForegroundColor = ConsoleColor.Yellow;
+            WriteLine("========================");
+            WriteLine("===== EDITAR ALUNO =====");
+            WriteLine("========================");
+            ResetColor();
+            WriteLine("\nDigite o nome do aluno(a) que deseja editar: ");
+            string nome = ReadLine().ToUpper();
+            int IdentAluno = Alunos.IndexOf(nome);
+            if (IdentAluno >= 0)
+            {
+                Clear();
+                ForegroundColor = ConsoleColor.Cyan;
+                WriteLine("==========================");
+                WriteLine("= ALUNO A SER MODIFICADO =");
+                WriteLine("==========================");
+                ResetColor();
+                WriteLine($"\nAluno que será editado: {Alunos[IdentAluno]}");
+                WriteLine($"Notas: {nota1[IdentAluno]} | {nota2[IdentAluno]}");
+                WriteLine("\nInsira o novo nome: ");
+                string novonome = ReadLine().ToUpper();
+                bool nomeJaExiste = false;
+                for (int i = 0; i < Alunos.Count; i++)
+                {
+                    if (i != IdentAluno && Alunos[i].ToUpper() == novonome)
+                    {
+                        nomeJaExiste = true;
+                        break;
+                    }
+                }
+
+                if (nomeJaExiste)
+                {
+                    ForegroundColor = ConsoleColor.Red;
+                    WriteLine($"Erro! O nome {novonome} já possui registros no sistema!");
+                    ResetColor();
+                    return;
+                }
+                else
+                {
+                    ForegroundColor = ConsoleColor.Green;
+                    WriteLine("===== Sucesso! Nome editado no sistema. =====");
+                    ResetColor();
+                    Alunos[IdentAluno] = novonome;
+                }
+                WriteLine($"\nDeseja editar as notas do aluno? ");
+                WriteLine("OPÇÃO:\n1 - Sim\n2 - Não");
+                WriteLine("\nR:");
+                int escolha = ToInt32(ReadLine());
+                int Index = Alunos.IndexOf(novonome);
+                if (escolha == 1)
+                {
+                    WriteLine("\nInsira a nova 1° nota do aluno: ");
+                    double novanota1 = ToDouble(ReadLine());
+                    nota1[Index] = novanota1;
+                    WriteLine($"Sucesso! A 1° nota foi modificada para {novanota1}");
+                    WriteLine("\nInsira a nova 2° nota do aluno: ");
+                    double novanota2 = ToDouble(ReadLine());
+                    nota2[Index] = novanota2;
+                    WriteLine($"Sucesso! A 2° nota foi modificada para {novanota2}");
+                    WriteLine($"Notas(Atualizadas): {nota1[Index]} | {nota2[Index]}");
+
+                    double mediaCalc = (nota1[Index] + nota2[Index]) / 2;
+                    media[Index] = mediaCalc;
+                    return;
+                }
+                else if (escolha == 2)
+                {
+                    WriteLine("Apenas edição do nome foi realizada!");
+                    WriteLine();
+                    WriteLine($"Nome Atualizado: {Alunos[IdentAluno]}");
+                    return;
+                }
+                else
+                {
+                    ForegroundColor = ConsoleColor.Red;
+                    WriteLine("Escolha Inválida! Apenas opção 1 e 2.");
+                    ResetColor();
+                    return;
+                }
+            }
+            else
+            {
+                ForegroundColor = ConsoleColor.Red;
+                WriteLine("Aluno não foi encontrado!");
+                ResetColor();
+                WriteLine("\nDeseja adicionar um aluno ao sistema? ");
+                WriteLine("OPÇÃO:\n1 - Sim\n2 - Não");
+                int escolhaUsu = ToInt32(ReadLine());
+                if (escolhaUsu == 1)
+                {
+                    AdicionarAluno();
+                }
+                else if (escolhaUsu == 2)
+                {
+                    ForegroundColor = ConsoleColor.Red;
+                    WriteLine("\nOperação cancelada!");
+                    ResetColor();
+                    return;
+                }
+                else
+                {
+                    ForegroundColor = ConsoleColor.Red;
+                    WriteLine("Escolha inválida!");
+                    ResetColor();
+                    return;
+                }
+                ResetColor();
+                return;
+            }
+        }
+        private static void RemoverAluno()
+        {
+            Clear();
+            ForegroundColor = ConsoleColor.Yellow;
+            WriteLine("========================");
+            WriteLine("=== REMOÇÃO DE ALUNO ===");
+            WriteLine("========================");
+            ResetColor();
+            WriteLine("\nDigite o nome do aluno(a) que deseja REMOVER: ");
+            string nomeAlunoRemov = ReadLine().ToUpper();
+            int identAluno = Alunos.IndexOf(nomeAlunoRemov);
+            if (identAluno >= 0)
+            {
+                WriteLine("\nAluno Encontrado! Deseja removê-lo? ");
+
+                if (identAluno >= 0 && identAluno < Alunos.Count)
+                {
+                    WriteLine($"Informações do Aluno: {Alunos[identAluno]} - Notas: {nota1[identAluno]} | {nota2[identAluno]}");
+                }
+                else
+                {
+                    WriteLine("Índice de aluno inválido.");
+                }
+
+                WriteLine("\nOpções: ");
+                WriteLine("Insira 1 para: Sim");
+                WriteLine("Insira 2 para: Não\n");
+                int escolha = ToInt32(ReadLine());
+
+                if (escolha == 1)
+                {
+                    Alunos.RemoveAt(identAluno);
+                    nota1.RemoveAt(identAluno);
+                    nota2.RemoveAt(identAluno);
+                    media.RemoveAt(identAluno);
+                    TurmasDosAlunos.RemoveAt(identAluno);
+
+                    ForegroundColor = ConsoleColor.Green;
+                    WriteLine($"Aluno {nomeAlunoRemov} removido com sucesso!");
+                    ResetColor();
+                    return;
+                }
+                else if (escolha == 2)
+                {
+                    WriteLine("\nOperação cancelada!");
+                    WriteLine("---- Se deseja remover algum aluno, digite novamente a opção 4 do Menu! ----");
+                    return;
+                }
+                else
+                {
+                    ForegroundColor = ConsoleColor.Red;
+                    WriteLine("Erro! Opção inválida!");
+                    ResetColor();
+                }
+            }
+            else
+            {
+                ForegroundColor = ConsoleColor.Red;
+                WriteLine("Aluno não foi encontrado! Adicione-o ao sistema (Opção 2 no Menu).");
+                ResetColor();
+                return;
+            }
+        }
+        private static void VerTurmas()
+        {
+            Clear();
+            ForegroundColor = ConsoleColor.Yellow;
+            WriteLine("=========================");
+            WriteLine("==== TODAS AS TURMAS ====");
+            WriteLine("=========================");
+            ResetColor();
+            int i = 0;
+            var turmas1 = Turmas.Count();
+            if (turmas1 >= 1)
+            {
+                foreach (string item in Turmas)
+                {
+                    WriteLine($"{i + 1} - {item}");
+                    i++;
+                }
+                WriteLine();
+            }
+            else
+            {
+                ForegroundColor = ConsoleColor.Red;
+                WriteLine("\nO sistema ainda não possui registros de turmas!");
+                WriteLine("==== Para adicionar uma turma ao sistema digite a opção 1 no Menu ====\n");
+                ResetColor();
+                return;
+            }
+        }
+        private static void VerAlunos()
+        {
+            Clear();
+            ForegroundColor = ConsoleColor.Yellow;
+            WriteLine("=========================");
+            WriteLine("==== TODAS OS ALUNOS ====");
+            WriteLine("=========================");
+            ResetColor();
+            var Alunos1 = Alunos.Count();
+            int totalAlunos = Alunos.Count;
+            if (totalAlunos > 0)
+            {
+                for (int i = 0; i < totalAlunos; i++)
+                {
+                    string nomeAluno = Alunos[i];
+                    string turmaAluno = TurmasDosAlunos[i];
+                    double n1 = nota1[i];
+                    double n2 = nota2[i];
+                    double mediaFinal = media[i];
+
+                    WriteLine($"{i + 1} - Nome: {nomeAluno} | Turma: {turmaAluno} | Nota1: {n1:F2} | Nota2: {n2:F2} | Média: {mediaFinal:F2}");
+                }
+            }
+            else
+            {
+                ForegroundColor = ConsoleColor.Red;
+                WriteLine("Não há alunos cadastrados no sistema.");
+                WriteLine("==== Para adicionar um aluno ao sistema, digite a opção 2 no Menu ====\n");
+                ResetColor();
+            }
+        }
+
+        private static void VerAprov()
+        {
+            Clear();
+            ForegroundColor = ConsoleColor.Yellow;
+            WriteLine("==========================");
+            WriteLine("==== ALUNOS APROVADOS ====");
+            WriteLine("==========================\n");
+            ResetColor();
+
+            bool encontrouAprovado = false;
+
+            for (int i = 0; i < Alunos.Count; i++)
+            {
+                if (i < nota1.Count && i < nota2.Count && i < TurmasDosAlunos.Count)
+                {
+                    double mediaAluno = (nota1[i] + nota2[i]) / 2;
+
+                    if (mediaAluno >= 70)
+                    {
+                        encontrouAprovado = true;
+                        WriteLine($"{i + 1} - {Alunos[i]} | Turma: {TurmasDosAlunos[i]} | Média: {mediaAluno:F2}");
+                    }
+                }
+            }
+
+            if (!encontrouAprovado)
+            {
+                ForegroundColor = ConsoleColor.Red;
+                WriteLine("Nenhum aluno aprovado foi encontrado.\n");
+                ResetColor();
+            }
+        }
+
+        private static void VerAlunosRec()
+        {
+            Clear();
+            ForegroundColor = ConsoleColor.Yellow;
+            WriteLine("==========================");
+            WriteLine("=== ALUNOS RECUPERAÇÃO ===");
+            WriteLine("==========================\n");
+            ResetColor();
+
+            bool encontrouRecup = false;
+
+            for (int i = 0; i < Alunos.Count; i++)
+            {
+                if (i < nota1.Count && i < nota2.Count && i < TurmasDosAlunos.Count)
+                {
+                    double mediaAluno = (nota1[i] + nota2[i]) / 2;
+
+                    if (mediaAluno >= 50 && mediaAluno <= 69)
+                    {
+                        encontrouRecup = true;
+                        WriteLine($"{i + 1} - {Alunos[i]} | Turma: {TurmasDosAlunos[i]} | Média: {mediaAluno:F2}");
+                    }
+                }
+            }
+
+            if (!encontrouRecup)
+            {
+                ForegroundColor = ConsoleColor.Red;
+                WriteLine("Nenhum aluno de recuperação foi encontrado.\n");
+                ResetColor();
+            }
+        }
+        private static void VerReprov()
+        {
+            Clear();
+            ForegroundColor = ConsoleColor.Yellow;
+            WriteLine("===========================");
+            WriteLine("==== ALUNOS REPROVADOS ====");
+            WriteLine("===========================\n");
+            ResetColor();
+
+            bool encontrouReprov = false;
+
+            for (int i = 0; i < Alunos.Count; i++)
+            {
+                if (i < nota1.Count && i < nota2.Count && i < TurmasDosAlunos.Count)
+                {
+                    double mediaAluno = (nota1[i] + nota2[i]) / 2;
+
+                    if (mediaAluno < 50)
+                    {
+                        encontrouReprov = true;
+                        WriteLine($"{i + 1} - {Alunos[i]} | Turma: {TurmasDosAlunos[i]} | Média: {mediaAluno:F2}");
+                    }
+                }
+            }
+
+            if (!encontrouReprov)
+            {
+                ForegroundColor = ConsoleColor.Red;
+                WriteLine("Nenhum aluno reprovado foi encontrado.\n");
+                ResetColor();
+            }
+        }
+        private static void PesqAluno()
+        {
+            Clear();
+            ForegroundColor = ConsoleColor.Yellow;
+            WriteLine("=========================");
+            WriteLine("==== CONSULTAR ALUNO ====");
+            WriteLine("=========================\n");
+            ResetColor();
+            WriteLine($"\nQual nome do aluno que deseja CONSULTAR? ");
+            string nome = ReadLine().ToUpper();
+            int index = Alunos.IndexOf(nome);
+            if (index >= 0)
+            {
+                WriteLine("\nSucesso! Aluno encontrado no sistema.");
+                double mediaAluno = (nota1[index] + nota2[index]) / 2;
+                WriteLine($"Nome: {Alunos[index]}");
+                WriteLine($"Notas: {nota1[index]} | {nota2[index]} | Média: {mediaAluno:F2}");
+
+                if (mediaAluno >= 70)
+                {
+                    ForegroundColor = ConsoleColor.Green;
+                    WriteLine("Situação: Aluno Aprovado!");
+                }
+                else if (mediaAluno >= 50 && mediaAluno < 70)
+                {
+                    ForegroundColor = ConsoleColor.Cyan;
+                    WriteLine("Situação: Aluno de Recuperação!");
+                }
+                else
+                {
+                    ForegroundColor = ConsoleColor.Red;
+                    WriteLine("Situação: Aluno Reprovado!");
+                }
+                ResetColor();
+            }
+            else
+            {
+                ForegroundColor = ConsoleColor.Red;
+                WriteLine("Erro! Nenhum aluno foi encontrado nos registros.");
+                WriteLine("==== Para adicionar um aluno, insira a Opção 2 no Menu. ====");
+                ResetColor();
+                return;
+            }
+        }
+
+        private static void SalvarDados()
+        {
+            Clear();
+            ForegroundColor = ConsoleColor.Yellow;
+            WriteLine("========================");
+            WriteLine("===== GRAVAR DADOS =====");
+            WriteLine("========================\n");
+            ResetColor();
+            WriteLine("Dados a gravar....");
+
+            string pasta = @"C:\DadosSalvos";
+            Directory.CreateDirectory(pasta);
+            try
+            {
+                StreamWriter dadosnomes;
+                string arq1 = @"C:\DadosSalvos\nomes.txt";
+                dadosnomes = File.CreateText(arq1);
+                foreach (var nomes in Alunos)
+                {
+                    dadosnomes.WriteLine($"{nomes}");
+                }
+                dadosnomes.Close();
+
+                StreamWriter dadosturmas;
+                string arq2 = @"C:\DadosSalvos\turmas.txt";
+                dadosturmas = File.CreateText(arq2);
+                foreach (var turmas in Turmas)
+                {
+                    dadosturmas.WriteLine($"{turmas}");
+                }
+                dadosturmas.Close();
+
+                StreamWriter dadosnota1;
+                string arq3 = @"C:\DadosSalvos\notas1.txt";
+                dadosnota1 = File.CreateText(arq3);
+                foreach (var notas1 in nota1)
+                {
+                    dadosnota1.WriteLine($"{notas1}");
+                }
+                dadosnota1.Close();
+
+                StreamWriter dadosnota2;
+                string arq4 = @"C:\DadosSalvos\notas2.txt";
+                dadosnota2 = File.CreateText(arq4);
+                foreach (var notas2 in nota2)
+                {
+                    dadosnota2.WriteLine($"{notas2}");
+                }
+                dadosnota2.Close();
+
+                StreamWriter dadosmedia;
+                string arq5 = @"C:\DadosSalvos\medias.txt";
+                dadosmedia = File.CreateText(arq5);
+                foreach (var medias in media)
+                {
+                    dadosmedia.WriteLine($"{medias}");
+                }
+                dadosmedia.Close();
+
+                StreamWriter dadosTurmasAlunos;
+                string arq6 = @"C:\DadosSalvos\turmasDosAlunos.txt";
+                dadosTurmasAlunos = File.CreateText(arq6);
+                foreach (var turmaAluno in TurmasDosAlunos)
+                {
+                    dadosTurmasAlunos.WriteLine($"{turmaAluno}");
+                }
+                dadosTurmasAlunos.Close();
+            }
+            catch (Exception e)
+            {
+                ForegroundColor = ConsoleColor.Red;
+                WriteLine($"Erro. {e.Message}");
+                ResetColor();
+            }
+            finally
+            {
+                ForegroundColor = ConsoleColor.Green;
+                WriteLine("\n\n<<<<<< DADOS GUARDADOS COM SUCESSO! >>>>>>");
+                ResetColor();
+            }
+        }
+
+        private static void ExibirDadosSalvos()
+        {
+            Alunos.Clear();
+            Turmas.Clear();
+            nota1.Clear();
+            nota2.Clear();
+            media.Clear();
+            TurmasDosAlunos.Clear();
+
+            var nome = File.ReadAllLines(@"C:\DadosSalvos\nomes.txt");
+            for (int a = 0; a < nome.Length; a++)
+            {
+                Alunos.Add(nome[a]);
+            }
+            var turmas = File.ReadAllLines(@"C:\DadosSalvos\turmas.txt");
+            for (int e = 0; e < turmas.Length; e++)
+            {
+                Turmas.Add(turmas[e]);
+            }
+            var notas1 = File.ReadAllLines(@"C:\DadosSalvos\notas1.txt");
+            for (int i = 0; i < notas1.Length; i++)
+            {
+                nota1.Add(ToDouble(notas1[i]));
+            }
+            var notas2 = File.ReadAllLines(@"C:\DadosSalvos\notas2.txt");
+            for (int o = 0; o < notas2.Length; o++)
+            {
+                nota2.Add(ToDouble(notas2[o]));
+            }
+            var medias = File.ReadAllLines(@"C:\DadosSalvos\medias.txt");
+            for (int u = 0; u < medias.Length; u++)
+            {
+                media.Add(ToDouble(medias[u]));
+            }
+            var turmasAlunos = File.ReadAllLines(@"C:\DadosSalvos\turmasDosAlunos.txt");
+            for (int a = 0; a < turmasAlunos.Length; a++)
+            {
+                TurmasDosAlunos.Add(turmasAlunos[a]);
+            }
+
+            ForegroundColor = ConsoleColor.Yellow;
+            WriteLine("=====================");
+            WriteLine("== DADOS RETOMADOS ==");
+            WriteLine("=====================\n");
+            ResetColor();
+
+            int totalAlunos = Alunos.Count;
+            for (int i = 0; i < totalAlunos; i++)
+            {
+                string nomeAluno = Alunos[i];
+                string turmaAluno = TurmasDosAlunos[i];
+                double n1 = nota1[i];
+                double n2 = nota2[i];
+                double mediaFinal = media[i];
+
+                WriteLine($"{i + 1} - Nome: {nomeAluno} | Turma: {turmaAluno} | Nota1: {n1:F2} | Nota2: {n2:F2} | Média: {mediaFinal:F2}");
+            }
+        }
+        private static int ConfirmacaoSair()
+        {
+            while (true)
+            {
+                WriteLine("\nOPÇÕES: \n1 - Adicionar mais\n2 - Voltar ao menu");
+                try
+                {
+                    int escolhaUsu = ToInt32(ReadLine());
+
+                    if (escolhaUsu == 1 || escolhaUsu == 2)
+                    {
+                        return escolhaUsu;
+                    }
+
+                    ForegroundColor = ConsoleColor.Red;
+                    WriteLine("Erro! Apenas opção 1 e 2. Tente novamente.");
+                    ResetColor();
+                }
+                catch (FormatException)
+                {
+                    ForegroundColor = ConsoleColor.Red;
+                    WriteLine("\nErro. A opção precisa ser um número válido!");
+                    ResetColor();
+                }
+                catch (Exception)
+                {
+                    ForegroundColor = ConsoleColor.Red;
+                    WriteLine("Erro Fatal!");
+                    ResetColor();
+                    return 2;
+                }
+            }
+        }
+
+
+    }
+}
